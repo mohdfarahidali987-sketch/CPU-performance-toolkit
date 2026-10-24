@@ -3,6 +3,7 @@
 #include "CSVExporter.hpp"
 
 #include <algorithm>
+#include <string>
 #include <array>
 #include <filesystem>
 #include <iomanip>
@@ -55,6 +56,7 @@ int main() {
     std::vector<double> sequentialTimes;
     std::vector<std::vector<double>> parallelTimes(threadCounts.size());
     std::vector<BenchmarkResult> results;
+    std::vector<BenchmarkResult> trialResults;
 
     // Alternate which mode runs first to reduce order bias.
     for (int trial = 0; trial < TRIALS; ++trial) {
@@ -68,6 +70,13 @@ int main() {
             }
 
             sequentialTimes.push_back(result.getExecutionTimeMs());
+            trialResults.emplace_back(
+    "Sequential Trial " + std::to_string(trial + 1),
+    iterations,
+    1,
+    result.getExecutionTimeMs(),
+    result.getChecksum()
+);
         };
 
         auto runParallel = [&](std::size_t index,
@@ -79,6 +88,13 @@ int main() {
             }
 
             parallelTimes[index].push_back(result.getExecutionTimeMs());
+            trialResults.emplace_back(
+    "Parallel Trial " + std::to_string(trial + 1),
+    iterations,
+    threads,
+    result.getExecutionTimeMs(),
+    result.getChecksum()
+);
         };
 
         if (trial % 2 == 0) {
@@ -153,7 +169,13 @@ int main() {
         std::cerr << "Failed to export CSV.\n";
         return 1;
     }
+    if (!exporter.exportResults(
+        trialResults, "results/trial_results.csv")) {
+    std::cerr << "Failed to export trial CSV.\n";
+    return 1;
+}
 
     std::cout << "\nCSV saved: results/benchmark.csv\n";
+    std::cout << "Raw trial data saved: results/trial_results.csv\n";
     return 0;
 }
