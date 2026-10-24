@@ -2,23 +2,19 @@
 
 A C++17 benchmarking tool that compares sequential and multithreaded execution to study how thread count affects execution time, speedup, and parallel efficiency.
 
-The project uses `std::thread` for parallel computation, validates results using checksums, and exports benchmark measurements to a CSV file for further analysis.
+The project uses `std::thread` for parallel computation, validates results using checksums, and exports benchmark measurements to CSV for analysis and visualization.
 
 ## Features
 
 - **Sequential vs. Parallel Execution:** Compare single-threaded computation with multithreaded execution.
-- **Multithreading:** Distribute computational work across 1, 2, 4, and 8 threads.
-- **Workload Partitioning:** Divide iterations into chunks and assign them to worker threads.
-- **Correctness Validation:** Compare checksums to verify that sequential and parallel computations produce matching results.
-- **Repeated Benchmarking:** Perform warm-up runs and collect measurements across seven trials per configuration.
-- **Performance Metrics:** Report average execution time, median execution time, speedup, and parallel efficiency.
-- **CSV Export:** Save benchmark measurements to `results/benchmark.csv`.
-- **Object-Oriented Design:** Organize benchmark execution, parallel processing, result storage, and CSV export into separate classes.
-- **Repeated Benchmark Trials:** Runs seven trials per configuration to reduce the impact of timing fluctuations.
-- **Performance Statistics:** Reports average and median execution times, speedup, and parallel efficiency.
-- **Correctness Validation:** Compares sequential and parallel checksums to verify results.
-- **CSV Data Export:** Saves benchmark summaries to `results/benchmark.csv` and individual trial measurements to `results/trial_results.csv`.
-- **Configurable Parallelism:** Evaluates execution with 1, 2, 4, and 8 threads.
+- **Configurable Parallelism:** Benchmark execution with 1, 2, 4, and 8 threads.
+- **Workload Partitioning:** Divide iterations into chunks and distribute work across worker threads.
+- **Correctness Validation:** Compare checksums to verify sequential and parallel results.
+- **Repeated Benchmarking:** Perform warm-up runs and collect seven timed trials per configuration.
+- **Performance Metrics:** Calculate average and median execution time, speedup, and parallel efficiency.
+- **CSV Export:** Export summary results and individual trial measurements.
+- **Performance Visualization:** Generate charts for execution time, speedup, and parallel efficiency.
+- **Object-Oriented Design:** Separate benchmarking, parallel processing, result storage, and CSV export into dedicated classes.
 
 ## Tech Stack
 
@@ -27,6 +23,7 @@ The project uses `std::thread` for parallel computation, validates results using
 - `std::thread`
 - `std::chrono`
 - CMake
+- Python 3 and Matplotlib for visualization
 - CSV file handling
 
 ## Project Structure
@@ -43,8 +40,14 @@ cpu-performance-toolkit/
 │   ├── ParallelEngine.cpp
 │   └── CSVExporter.cpp
 ├── results/
-│   └── benchmark.csv
+│   ├── benchmark.csv
+│   ├── trial_results.csv
+│   └── plots/
+│       ├── execution_time.png
+│       ├── speedup.png
+│       └── efficiency.png
 ├── main.cpp
+├── plot_results.py
 ├── CMakeLists.txt
 ├── .gitignore
 └── README.md
@@ -54,6 +57,8 @@ cpu-performance-toolkit/
 
 - A C++17-compatible compiler
 - CMake
+- Python 3
+- Matplotlib
 - A system with support for C++ threads
 
 ## Build and Run
@@ -77,7 +82,7 @@ cmake -S . -B build-release -DCMAKE_BUILD_TYPE=Release
 cmake --build build-release
 ```
 
-### 4. Run
+### 4. Run the benchmark
 
 ```bash
 ./build-release/cpu_benchmark
@@ -91,34 +96,34 @@ The program benchmarks sequential execution and parallel execution using 1, 2, 4
 
 The current implementation:
 
-1. Executes warm-up runs before collecting timed measurements.
+1. Executes warm-up runs before timed measurements.
 2. Uses the sequential result as the reference checksum.
 3. Runs seven timed trials for sequential execution and each parallel thread configuration.
-4. Alternates the order of sequential and parallel measurements to reduce systematic timing bias.
+4. Alternates the order of sequential and parallel measurements to help reduce systematic timing bias.
 5. Calculates average and median execution times.
 6. Calculates speedup and parallel efficiency using median timings.
-7. Verifies the checksum of every measured result.
-8. Exports the collected summary results to CSV.
+7. Validates the checksum of each measured result.
+8. Exports summary results and raw trial measurements to CSV files.
 
 ## Performance Metrics
 
-**Speedup**
+### Speedup
 
-Speedup compares the sequential median time with the parallel median time.
+Speedup compares sequential median execution time with parallel median execution time.
 
 `Speedup = Sequential Median / Parallel Median`
 
-A speedup greater than `1` indicates that the parallel configuration was faster for that measurement.
+A speedup greater than `1` indicates that the parallel configuration was faster in the measured run.
 
-**Parallel Efficiency**
+### Parallel Efficiency
 
 `Efficiency (%) = (Speedup / Number of Threads) × 100`
 
-Efficiency describes speedup relative to the number of threads. It can vary with workload size, thread-management overhead, CPU architecture, compiler optimizations, and system load.
+Efficiency measures speedup relative to the number of threads. It can vary with workload size, thread-management overhead, CPU architecture, compiler optimizations, and system load.
 
-## Sample Output
+## Sample Benchmark Results
 
-The following is an example from a local run with 10,000,000 iterations. Results are specific to that run and are not guaranteed on other systems.
+The following example is from a local run with 10,000,000 iterations. Results are specific to that run and may vary across systems.
 
 | Threads | Median Time (ms) | Speedup | Efficiency |
 |---:|---:|---:|---:|
@@ -127,31 +132,68 @@ The following is an example from a local run with 10,000,000 iterations. Results
 | 4 | 1.184 | 3.155× | 78.9% |
 | 8 | 0.950 | 3.931× | 49.1% |
 
-All four configurations passed checksum validation in this run.
+All four configurations passed checksum validation in this example.
+
+## Performance Visualization
+
+The Python plotting script generates three charts using median timings from `results/benchmark.csv`.
+
+### Execution Time Comparison
+
+![Execution Time Comparison](results/plots/execution_time.png)
+
+### Parallel Speedup
+
+![Parallel Speedup](results/plots/speedup.png)
+
+### Parallel Efficiency
+
+![Parallel Efficiency](results/plots/efficiency.png)
+
+### Generate the charts
+
+Install Matplotlib if necessary:
+
+```bash
+python3 -m pip install matplotlib
+```
+
+Run the plotting script from the project root:
+
+```bash
+python3 plot_results.py
+```
+
+The generated charts are saved in `results/plots/`.
 
 ## CSV Results
 
-Benchmark output is written to:
+### Summary Results
 
-```text
-results/benchmark.csv
-```
+`results/benchmark.csv`
 
-The CSV includes the execution mode, iteration count, thread count, recorded time in milliseconds, and checksum.
+Contains the execution mode, iteration count, thread count, recorded time in milliseconds, and checksum. It includes average and median timing summaries.
 
-You can open the file in Excel, Google Sheets, or another data-analysis tool to compare configurations.
+### Raw Trial Measurements
+
+`results/trial_results.csv`
+
+Contains individual trial measurements for sequential and parallel configurations, allowing more detailed analysis of timing variation.
+
+Both CSV files can be opened using Excel, Google Sheets, or other data-analysis tools.
 
 ## Limitations
 
-- Benchmark results depend on the processor, operating system, compiler, build settings, and background system activity.
-- Thread creation and scheduling add overhead, especially for small workloads.
-- Sequential and parallel implementations may be optimized differently by the compiler. Therefore, measurements should be interpreted as observations of this implementation, not as universal hardware performance claims.
+- Results depend on the processor, operating system, compiler, build settings, and background system activity.
+- Thread creation and scheduling introduce overhead, especially for small workloads.
+- Sequential and parallel implementations may be optimized differently by the compiler.
 - Repeated trials improve measurement quality but do not eliminate all sources of variability.
+
+Therefore, benchmark results should be interpreted as measurements of this implementation, not universal hardware performance guarantees.
 
 ## Future Improvements
 
 - Add automated benchmarks across multiple iteration counts.
-- Add charts to visualize speedup and efficiency.
 - Compare different workload sizes and scheduling strategies.
 - Improve benchmark fairness by investigating compiler optimization and measurement effects.
 
@@ -165,6 +207,7 @@ This project explores:
 - Execution-time measurement with `std::chrono`
 - Checksum-based correctness testing
 - Performance analysis and CSV data export
+- Benchmark visualization using Python and Matplotlib
 
 ## Author
 
