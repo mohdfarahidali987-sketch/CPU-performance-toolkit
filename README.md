@@ -14,6 +14,11 @@ The project uses `std::thread` for parallel computation, validates results using
 - **Performance Metrics:** Report average execution time, median execution time, speedup, and parallel efficiency.
 - **CSV Export:** Save benchmark measurements to `results/benchmark.csv`.
 - **Object-Oriented Design:** Organize benchmark execution, parallel processing, result storage, and CSV export into separate classes.
+- **Repeated Benchmark Trials:** Runs seven trials per configuration to reduce the impact of timing fluctuations.
+- **Performance Statistics:** Reports average and median execution times, speedup, and parallel efficiency.
+- **Correctness Validation:** Compares sequential and parallel checksums to verify results.
+- **CSV Data Export:** Saves benchmark summaries to `results/benchmark.csv` and individual trial measurements to `results/trial_results.csv`.
+- **Configurable Parallelism:** Evaluates execution with 1, 2, 4, and 8 threads.
 
 ## Tech Stack
 
@@ -146,7 +151,6 @@ You can open the file in Excel, Google Sheets, or another data-analysis tool to 
 ## Future Improvements
 
 - Add automated benchmarks across multiple iteration counts.
-- Export raw trial measurements in addition to averages and medians.
 - Add charts to visualize speedup and efficiency.
 - Compare different workload sizes and scheduling strategies.
 - Improve benchmark fairness by investigating compiler optimization and measurement effects.
